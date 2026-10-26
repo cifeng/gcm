@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gcm · AI Commit 工坊 — 大厂标准 commit log 一键生成</title>
+<style>
+  :root {
+    --bg: #f6f7fb; --card: #ffffff; --ink: #0f172a; --muted: #64748b;
+    --line: #e6e9f0; --brand: #4f46e5; --brand-soft: #eef0ff;
+    --ok: #059669; --bad: #dc2626; --warn: #d97706;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; height: auto; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 20px 80px; }
+  .hero { padding: 56px 0 36px; text-align: center; }
+  .tag {
+    display: inline-block; font-size: 12px; letter-spacing: .08em; color: var(--brand);
+    background: var(--brand-soft); border-radius: 999px; padding: 5px 14px; margin-bottom: 18px;
+  }
+  h1 { font-size: clamp(28px, 5vw, 44px); line-height: 1.25; letter-spacing: -.02em; margin-bottom: 14px; }
+  h1 em { font-style: normal; color: var(--brand); }
+  .lede { font-size: clamp(15px, 2vw, 17px); color: var(--muted); max-width: 620px; margin: 0 auto; }
+  .hero-actions { margin-top: 26px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 10px;
+    padding: 11px 20px; font-size: 14px; cursor: pointer; font-weight: 500;
+  }
+  .btn:hover { border-color: var(--brand); color: var(--brand); }
+  .btn.solid { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .btn.solid:hover { background: #4338ca; color: #fff; }
+
+  section { margin-top: 52px; }
+  .sec-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .sec-no { font-size: 12px; color: var(--brand); font-weight: 700; letter-spacing: .1em; }
+  h2 { font-size: clamp(19px, 3vw, 23px); letter-spacing: -.01em; }
+  .sec-desc { color: var(--muted); font-size: 14px; margin-bottom: 18px; }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .compare .card.bad { border-left: 3px solid var(--bad); }
+  .compare .card.good { border-left: 3px solid var(--ok); }
+  .compare h3 { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  pre {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    font-size: 12.5px; line-height: 1.7; white-space: pre-wrap; word-break: break-word;
+  }
+  .card.bad pre { color: #7f1d1d; }
+  .card.good pre { color: #064e3b; }
+  .card.good pre b { color: #047857; }
+
+  .checker { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; }
+  textarea {
+    width: 100%; min-height: 168px; resize: vertical; padding: 14px;
+    border: 1px solid var(--line); border-radius: 10px; font-family: Consolas, monospace;
+    font-size: 13px; line-height: 1.7; outline: none; color: var(--ink); background: #fff;
+  }
+  textarea:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(79,70,229,.1); }
+  .hint-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .mini { font-size: 12px; border: 1px dashed var(--line); background: #fff; color: var(--muted);
+    border-radius: 8px; padding: 6px 10px; cursor: pointer; }
+  .mini:hover { color: var(--brand); border-color: var(--brand); }
+  .score-box { text-align: center; padding: 8px 0 14px; border-bottom: 1px dashed var(--line); margin-bottom: 12px; }
+  .score-num { font-size: clamp(32px, 6vw, 44px); font-weight: 800; letter-spacing: -.03em; }
+  .score-label { font-size: 12px; color: var(--muted); }
+  .checks { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .checks li { font-size: 13px; display: flex; gap: 8px; align-items: flex-start; }
+  .dot { flex: 0 0 16px; height: 16px; border-radius: 50%; font-size: 10px; color: #fff;
+    display: flex; align-items: center; justify-content: center; margin-top: 3px; font-weight: 700; }
+  .dot.pass { background: var(--ok); }
+  .dot.fail { background: var(--bad); }
+  .dot.warn { background: var(--warn); }
+  .empty-tip { color: var(--muted); font-size: 13px; text-align: center; padding: 28px 8px; }
+
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .tab { font-size: 13px; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line);
+    background: #fff; cursor: pointer; color: var(--muted); }
+  .tab.on { background: var(--brand); border-color: var(--brand); color: #fff; }
+  .demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .demo-panel h3 { font-size: 13px; color: var(--muted); margin-bottom: 8px; font-weight: 600; }
+  .demo-panel pre { background: #f8f9fc; border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .demo-out { background: #0f172a; border-radius: 10px; padding: 16px; }
+  .demo-out pre { color: #e2e8f0; }
+  .demo-out .title-line { color: #a5b4fc; font-weight: 700; }
+
+  .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .mode .name { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .mode .free { display: inline-block; font-size: 11px; color: var(--ok); background: #ecfdf5;
+    border-radius: 4px; padding: 1px 7px; margin-left: 6px; vertical-align: 1px; }
+  .mode p { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  .cmd { position: relative; background: #f8f9fc; border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 12px; font-family: Consolas, monospace; font-size: 12px; overflow-x: auto; }
+  .copy { position: absolute; right: 6px; top: 6px; font-size: 11px; border: 1px solid var(--line);
+    background: #fff; border-radius: 5px; padding: 2px 7px; cursor: pointer; color: var(--muted); }
+  .copy:hover { color: var(--brand); border-color: var(--brand); }
+
+  .tools { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .tools th, .tools td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  .tools th { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .tools td code { font-family: Consolas, monospace; font-size: 12px; color: var(--brand); }
+
+  .spec { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .spec div { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .spec .k { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .spec .v { font-size: 14px; font-weight: 700; }
+
+  footer { margin-top: 60px; text-align: center; font-size: 12px; color: var(--muted); }
+
+  @media (max-width: 760px) {
+    .compare, .checker, .demo-grid, .modes, .spec { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="tag">1024 程序员节 · AI 编程工具</span>
+    <h1>别再手写 commit log 了<br><em>一句话，生成大厂标准的提交记录</em></h1>
+    <p class="lede">
+      gcm 读取项目的 git diff，交给 AI 按 Conventional Commits（Angular 规范）生成
+      标题 + 正文 + 两条备选，确认后一键提交。支持接入 WorkBuddy 的 MCP 模式，<b>零 API Key、零成本</b>。
+    </p>
+    <div class="hero-actions">
+      <button class="btn solid" data-jump="#checker">试试规范体检器</button>
+      <button class="btn" data-jump="#modes">看三种用法</button>
+    </div>
+  </header>
+
+  <section id="why">
+    <div class="sec-head"><span class="sec-no">01</span><h2>同一个改动，两种提交记录</h2></div>
+    <p class="sec-desc">评审时被问“这个 commit 到底改了什么”的尴尬，大多来自随手写的 message。</p>
+    <div class="compare">
+      <div class="card bad">
+        <h3>✗ 随手写（无法回溯、无法生成 CHANGELOG）</h3>
+        <pre>update
+
+改了点东西
+修复bug
+再改一下
+
+# 问题：type 缺失 / 描述含糊 /
+# 一条 commit 混了多个变更</pre>
+      </div>
+      <div class="card good">
+        <h3>✓ gcm 生成（符合 Angular 规范）</h3>
+        <pre><b>fix(auth): 修复 token 过期后刷新失败的问题</b>
+
+旧逻辑在 token 过期时直接抛出 401，未触发
+refresh 流程，导致用户被强制登出。
+
+现在过期前 60 秒主动刷新，刷新失败才登出。
+补充 refresh 过期场景的单测。</pre>
+      </div>
+    </div>
+  </section>
+
+  <section id="checker">
+    <div class="sec-head"><span class="sec-no">02</span><h2>在线体检：你的 commit message 合规吗？</h2></div>
+    <p class="sec-desc">粘贴任意 commit message，实时按大厂规范打分并给出修改建议（本页纯前端计算，不上传任何内容）。</p>
+    <div class="checker">
+      <div>
+        <textarea id="msgInput" spellcheck="false" placeholder="把 commit message 粘贴到这里，例如：
+feat(cart): 支持购物车商品批量删除"></textarea>
+        <div class="hint-row">
+          <button class="mini" data-sample="bad">填入反例</button>
+          <button class="mini" data-sample="good">填入正面示例</button>
+          <button class="mini" data-sample="multi">填入多类型混杂的反例</button>
+        </div>
+      </div>
+      <div class="card" id="scorePanel">
+        <div class="empty-tip">开始输入后，这里会实时显示评分与逐项检查结果</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="demo">
+    <div class="sec-head"><span class="sec-no">03</span><h2>真实样例：diff 进，规范 message 出</h2></div>
+    <p class="sec-desc">点不同场景，看 gcm 如何从 diff 里读出“为什么改”和“改了什么”。</p>
+    <div class="tabs" id="tabs"></div>
+    <div class="demo-grid">
+      <div class="card demo-panel">
+        <h3>输入 · git diff</h3>
+        <pre id="demoDiff"></pre>
+      </div>
+      <div class="demo-panel">
+        <h3>输出 · commit message</h3>
+        <div class="demo-out"><pre id="demoOut"></pre></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="modes">
+    <div class="sec-head"><span class="sec-no">04</span><h2>三种用法，按习惯挑一个</h2></div>
+    <p class="sec-desc">同一套规范内核，三种入口：对话里用、网页上点、终端里敲。</p>
+    <div class="modes">
+      <div class="card mode">
+        <div class="name">MCP 接入<span class="free">零成本</span></div>
+        <p>挂进 WorkBuddy，AI 自带能力生成，不需要任何 API Key。</p>
+        <div class="cmd">帮我把 D:/code/app 的改动提交<button class="copy" data-copy="帮我把 D:/code/app 的改动提交">复制</button></div>
+      </div>
+      <div class="card mode">
+        <div class="name">网页版</div>
+        <p>双击 start.bat 自动开页面，选项目 → 生成 → 点提交。</p>
+        <div class="cmd">start.bat → localhost:7788<button class="copy" data-copy="start.bat">复制</button></div>
+      </div>
+      <div class="card mode">
+        <div class="name">命令行</div>
+        <p>接任意 OpenAI 兼容模型，适合脚本化与终端党。</p>
+        <div class="cmd">node gcm.js D:/code/app --commit<button class="copy" data-copy="node gcm.js D:/code/app --commit">复制</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="arch">
+    <div class="sec-head"><span class="sec-no">05</span><h2>它是怎么工作的</h2></div>
+    <p class="sec-desc">不猜、不编：所有结论都来自真实 diff。</p>
+    <div class="card">
+      <div class="spec">
+        <div><div class="k">读取变更</div><div class="v">git diff</div></div>
+        <div><div class="k">识别规范</div><div class="v">Conventional Commits</div></div>
+        <div><div class="k">生成候选</div><div class="v">1 推荐 + 2 备选</div></div>
+        <div><div class="k">落地方式</div><div class="v">git commit -m</div></div>
+      </div>
+      <table class="tools" style="margin-top:18px">
+        <thead><tr><th>MCP 工具</th><th>作用</th></tr></thead>
+        <tbody>
+          <tr><td><code>get_changes</code></td><td>读分支、diff、未跟踪文件，并返回规范生成要求给 AI</td></tr>
+          <tr><td><code>commit</code></td><td>用确认后的 message 提交暂存区变更</td></tr>
+          <tr><td><code>stage_all</code></td><td>git add -A，连暂存步骤一起省掉</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="who">
+    <div class="sec-head"><span class="sec-no">06</span><h2>给谁用</h2></div>
+    <p class="sec-desc">写代码的人每天至少遇到一次的场景。</p>
+    <div class="compare">
+      <div class="card">
+        <h3>个人开发者</h3>
+        <p style="font-size:13px;color:var(--muted)">提交前 3 秒生成规范 message，历史记录从此能当文档看，做 side project 也不再写“update”。</p>
+      </div>
+      <div class="card">
+        <h3>团队 / 开源维护者</h3>
+        <p style="font-size:13px;color:var(--muted)">统一规范不靠人盯：review 时不必再纠正措辞，CHANGELOG 与 semantic-release 直接可用。</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>gcm · AI Commit 工坊 — 读取真实 diff，只写事实，不编造改动</footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var TYPES = {
+    feat: "新功能", fix: "修复 bug", docs: "文档", style: "格式", refactor: "重构",
+    perf: "性能", test: "测试", build: "构建", ci: "集成", chore: "杂项", revert: "回滚"
+  };
+
+  /* ---------- 规范体检器 ---------- */
+
+  var input = document.getElementById("msgInput");
+  var panel = document.getElementById("scorePanel");
+
+  function parseMsg(raw) {
+    var lines = raw.replace(/\r\n/g, "\n").split("\n");
+    var title = lines[0] || "";
+    var rest = lines.slice(1).join("\n");
+    var body = rest.replace(/^\s*\n/, "");
+    var m = title.match(/^([a-zA-Z]+)(?:\(([^()]*)\))?(!)?:\s*(.+)$/);
+    return { lines: lines, title: title, body: body, m: m, hasBlankLine: /^\s*\n/.test(rest) || rest.trim() === "" };
+  }
+
+  function check(raw) {
+    var r = parseMsg(raw);
+    var items = [];
+    var score = 100;
+    function add(level, text, penalty) {
+      items.push({ level: level, text: text });
+      if (penalty) score -= penalty;
+    }
+
+    if (!r.title.trim()) { return { score: 0, items: [{ level: "fail", text: "还没有内容，先粘贴一条 commit message" }] }; }
+
+    if (!r.m) {
+      add("fail", "标题不符合 <type>(<scope>): <subject> 格式，缺少类型前缀与冒号", 35);
+    } else {
+      var type = r.m[1].toLowerCase();
+      if (!TYPES[type]) add("fail", "类型 " + r.m[1] + " 不在规范内，应使用 " + Object.keys(TYPES).join(" / "), 20);
+      else add("pass", "类型合法：" + type + "（" + TYPES[type] + "）", 0);
+      if (!r.m[2]) add("warn", "建议补上 scope（影响模块），便于按模块检索历史", 5);
+      else add("pass", "scope 明确：" + r.m[2], 0);
+      var subject = r.m[4] || "";
+      if (subject.length > 72) add("fail", "描述 " + subject.length + " 字符，超过 72 上限，建议精简", 10);
+      else add("pass", "描述长度 " + subject.length + " 字符，符合 ≤72 要求", 0);
+      if (/[。.!！?？；;]$/.test(subject)) add("warn", "描述结尾不要加句号/感叹号", 5);
+      if (/^(update|fix|change|modify|修改|更新|修复)/i.test(subject)) add("warn", "描述过于笼统，写清“改了什么、为什么改”更有价值", 8);
+    }
+
+    if (r.body.trim()) {
+      if (!r.hasBlankLine) add("fail", "标题与正文之间必须空一行", 15);
+      else add("pass", "标题与正文之间有空行", 0);
+      var tooLong = r.body.split("\n").filter(function (l) { return l.length > 100; }).length;
+      if (tooLong > 0) add("warn", "有 " + tooLong + " 行正文超过 100 字符，建议按语义折行", 5);
+      else add("pass", "正文行宽符合 ≤100 字符", 0);
+      if (r.body.replace(/\s/g, "").length < 8) add("warn", "正文过短，建议说明“为什么改”而不只是“改了什么”", 3);
+    } else {
+      add("warn", "没有正文：单一小改动可以省略，涉及逻辑变更建议补上原因", 3);
+    }
+
+    var extra = 0;
+    if (/^(Merge|Revert)/i.test(r.title)) extra = 1;
+    if (r.lines.length > 1 && !r.body.trim()) add("warn", "标题下方存在空行或多余内容", 2);
+    if (extra) add("pass", "合并类提交可豁免部分规范", 0);
+
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    return { score: score, items: items };
+  }
+
+  function renderScore() {
+    var raw = input.value;
+    if (!raw.trim()) {
+      panel.innerHTML = "";
+      var tip = document.createElement("div");
+      tip.className = "empty-tip";
+      tip.textContent = "开始输入后，这里会实时显示评分与逐项检查结果";
+      panel.appendChild(tip);
+      return;
+    }
+    var res = check(raw);
+    panel.innerHTML = "";
+
+    var box = document.createElement("div");
+    box.className = "score-box";
+    var num = document.createElement("div");
+    num.className = "score-num";
+    num.textContent = String(res.score);
+    num.style.color = res.score >= 85 ? "#059669" : res.score >= 60 ? "#d97706" : "#dc2626";
+    var lab = document.createElement("div");
+    lab.className = "score-label";
+    lab.textContent = res.score >= 85 ? "规范达标，可以直接提交" : res.score >= 60 ? "基本可用，还有改进空间" : "不符合大厂规范，建议重写";
+    box.appendChild(num);
+    box.appendChild(lab);
+    panel.appendChild(box);
+
+    var ul = document.createElement("ul");
+    ul.className = "checks";
+    res.items.forEach(function (it) {
+      var li = document.createElement("li");
+      var d = document.createElement("span");
+      d.className = "dot " + it.level;
+      d.textContent = it.level === "pass" ? "✓" : it.level === "warn" ? "!" : "×";
+      var t = document.createElement("span");
+      t.textContent = it.text;
+      li.appendChild(d);
+      li.appendChild(t);
+      ul.appendChild(li);
+    });
+    panel.appendChild(ul);
+  }
+
+  input.addEventListener("input", renderScore);
+
+  var samples = {
+    bad: "update\n\n改了点东西",
+    good: "fix(auth): 修复 token 过期后刷新失败的问题\n\n旧逻辑在 token 过期时直接抛出 401，未触发 refresh 流程，\n导致用户被强制登出。\n\n现在过期前 60 秒主动刷新，刷新失败才登出。",
+    multi: "修复购物车bug顺便优化首页样式并升级依赖"
+  };
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-sample]"), function (btn) {
+    btn.addEventListener("click", function () {
+      input.value = samples[btn.getAttribute("data-sample")];
+      renderScore();
+      input.focus();
+    });
+  });
+
+  /* ---------- 示例 diff → message ---------- */
+
+  var cases = [
+    {
+      name: "修复登录态失效",
+      diff: "diff --git a/src/auth/refresh.ts b/src/auth/refresh.ts\n--- a/src/auth/refresh.ts\n+++ b/src/auth/refresh.ts\n@@ -12,6 +12,12 @@ export async function withAuth(req) {\n-  if (isExpired(token)) throw new UnauthorizedError();\n+  if (isExpired(token)) {\n+    const next = await refreshToken(token);\n+    if (!next) throw new UnauthorizedError();\n+    token = next;\n+  }",
+      out: "fix(auth): 修复 token 过期后刷新失败的问题\n\n旧逻辑在 token 过期时直接抛出 401，未触发\nrefresh 流程，导致用户被强制登出。\n\n现在过期时先主动刷新，刷新失败才登出。\n补充 refresh 过期场景的单测。"
+    },
+    {
+      name: "新增批量删除",
+      diff: "diff --git a/src/cart/api.ts b/src/cart/api.ts\n--- a/src/cart/api.ts\n+++ b/src/cart/api.ts\n@@ -30,0 +31,18 @@\n+export async function batchRemove(ids: string[]) {\n+  if (!ids.length) return { removed: 0 };\n+  const chunks = chunk(ids, 50);\n+  let removed = 0;\n+  for (const c of chunks) removed += await removeMany(c);\n+  return { removed };\n+}",
+      out: "feat(cart): 支持购物车商品批量删除\n\n单次删除在大批量场景下请求次数过多，接口超时频发。\n\n新增 batchRemove，按 50 条分片批量提交，返回实际\n删除数量；空入参直接返回，避免无意义请求。"
+    },
+    {
+      name: "重构重复逻辑",
+      diff: "diff --git a/src/utils/format.ts b/src/utils/format.ts\n--- a/src/utils/format.ts\n+++ b/src/utils/format.ts\n@@ -1,16 +1,9 @@\n-export function formatPrice(n) {\n-  return '¥' + (n / 100).toFixed(2)\n-}\n-export function formatAmount(n) {\n-  return '¥' + (n / 100).toFixed(2)\n-}\n+export const formatMoney = (n: number) =>\n+  '¥' + (n / 100).toFixed(2)",
+      out: "refactor(utils): 合并重复的金额格式化函数\n\nformatPrice 与 formatAmount 实现完全一致，维护时容易\n只改一处造成展示口径不一致。\n\n统一为 formatMoney 并补类型标注，调用方同步替换，\n对外行为不变。"
+    }
+  ];
+
+  var tabs = document.getElementById("tabs");
+  var demoDiff = document.getElementById("demoDiff");
+  var demoOut = document.getElementById("demoOut");
+
+  function renderCase(i) {
+    Array.prototype.forEach.call(tabs.children, function (b, idx) {
+      b.className = "tab" + (idx === i ? " on" : "");
+    });
+    demoDiff.textContent = cases[i].diff;
+    demoOut.textContent = "";
+    var lines = cases[i].out.split("\n");
+    lines.forEach(function (line, idx) {
+      var span = document.createElement("span");
+      span.textContent = line + (idx === lines.length - 1 ? "" : "\n");
+      if (idx === 0) span.className = "title-line";
+      demoOut.appendChild(span);
+    });
+  }
+
+  cases.forEach(function (c, i) {
+    var b = document.createElement("button");
+    b.className = "tab";
+    b.textContent = c.name;
+    b.addEventListener("click", function () { renderCase(i); });
+    tabs.appendChild(b);
+  });
+  renderCase(0);
+
+  /* ---------- 复制 / 跳转 ---------- */
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function (btn) {
+    btn.addEventListener("click", function () {
+      var text = btn.getAttribute("data-copy");
+      var done = function () {
+        var old = btn.textContent;
+        btn.textContent = "已复制✓";
+        setTimeout(function () { btn.textContent = old; }, 1400);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, done);
+      } else {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+        done();
+      }
+    });
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll("[data-jump]"), function (btn) {
+    btn.addEventListener("click", function () {
+      var el = document.querySelector(btn.getAttribute("data-jump"));
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+})();
+</script>
+</body>
+</html>

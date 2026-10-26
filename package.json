@@ -1,0 +1,10 @@
+{
+  "name": "gcm-git-commit-ai",
+  "version": "1.0.0",
+  "description": "读取项目 git diff，调用 LLM 自动生成大厂标准 commit message（Conventional Commits / Angular 规范）",
+  "main": "gcm.js",
+  "bin": { "gcm": "./gcm.js" },
+  "scripts": { "test": "node test-mock-server.js" },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}

@@ -1,0 +1,9 @@
+{
+  "_comment": "把本文件内容合并进 ~/.workbuddy/mcp.json 的 mcpServers，重启后在连接器页对 gcm 点「信任」",
+  "mcpServers": {
+    "gcm": {
+      "command": "node",
+      "args": ["<你的绝对路径>/git-commit-ai/mcp-server.js"]
+    }
+  }
+}

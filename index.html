@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>gcm · AI Commit 生成器</title>
+<style>
+  :root {
+    --bg: #f5f7fa; --card: #ffffff; --border: #e2e8f0; --text: #1a202c;
+    --muted: #718096; --primary: #2563eb; --primary-dark: #1d4ed8;
+    --ok: #16a34a; --err: #dc2626; --chip: #eef2ff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", "Microsoft YaHei", sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 24px; }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+  input[type=text] { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px; outline: none; }
+  input[type=text]:focus { border-color: var(--primary); }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .chips { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { background: var(--chip); color: var(--primary-dark); border: none; border-radius: 999px; padding: 4px 12px; font-size: 12px; cursor: pointer; }
+  .chip:hover { filter: brightness(0.95); }
+  button.primary { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 11px 22px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  button.primary:hover { background: var(--primary-dark); }
+  button.primary:disabled { background: #a5b4fc; cursor: not-allowed; }
+  button.ghost { background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
+  button.ghost:hover { border-color: var(--primary); color: var(--primary); }
+  .status { margin-top: 10px; font-size: 13px; color: var(--muted); }
+  .status b { color: var(--text); }
+  .status.err { color: var(--err); }
+  .status.ok { color: var(--ok); }
+  .toggle { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); margin-top: 10px; cursor: pointer; }
+  .msg-card { border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 10px; cursor: pointer; transition: border-color .15s; }
+  .msg-card:hover { border-color: var(--primary); }
+  .msg-card.selected { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(37,99,235,.15); }
+  .msg-title { font-family: Consolas, monospace; font-size: 14px; font-weight: 700; }
+  .msg-body { font-size: 13px; color: var(--muted); margin-top: 6px; white-space: pre-wrap; font-family: Consolas, monospace; }
+  .badge { display: inline-block; font-size: 11px; color: var(--primary-dark); background: var(--chip); border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
+  .actions { margin-top: 14px; display: flex; gap: 10px; }
+  details { margin-bottom: 12px; }
+  summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+  details .card { margin-top: 10px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid .full { grid-column: 1 / -1; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #cbd5e1; border-top-color: var(--primary); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🚀 gcm — AI Commit 生成器</h1>
+  <div class="sub">选项目 → 点生成 → 点提交，三步搞定大厂标准 commit log</div>
+
+  <details id="cfgBox">
+    <summary>⚙️ 设置（API Key 填一次就记住，之后不用再输）</summary>
+    <div class="card">
+      <div class="grid">
+        <div class="full">
+          <label>API Key</label>
+          <input type="text" id="apiKey" placeholder="sk-...">
+        </div>
+        <div>
+          <label>接口地址（OpenAI 兼容）</label>
+          <input type="text" id="baseUrl" placeholder="https://api.deepseek.com/v1">
+        </div>
+        <div>
+          <label>模型</label>
+          <input type="text" id="model" placeholder="deepseek-chat">
+        </div>
+      </div>
+      <div class="actions">
+        <button class="ghost" onclick="saveCfg()">保存设置</button>
+        <span class="status" id="cfgStatus"></span>
+      </div>
+    </div>
+  </details>
+
+  <div class="card">
+    <label>项目路径</label>
+    <div class="row">
+      <input type="text" id="projPath" placeholder="例如 D:\code\my-project" spellcheck="false">
+      <button class="ghost" onclick="inspect()">检测</button>
+    </div>
+    <div class="chips" id="recents"></div>
+    <div class="status" id="projStatus"></div>
+    <label class="toggle" id="addAllRow" style="display:none">
+      <input type="checkbox" id="addAll"> 自动暂存全部变更（含新文件，git add -A）
+    </label>
+  </div>
+
+  <div class="row" style="margin-bottom:16px">
+    <button class="primary" id="genBtn" onclick="generate()">✨ 生成 Commit Message</button>
+    <label class="toggle" style="margin:0">
+      <input type="checkbox" id="langEn"> 英文
+    </label>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let state = { path: "", candidates: [], selected: 0, source: "" };
+
+// 初始化：拉配置 + 最近项目
+(async () => {
+  const cfg = await (await fetch("/api/config")).json();
+  if (!cfg.hasKey) $("cfgBox").open = true;
+  $("baseUrl").value = cfg.baseUrl || "";
+  $("model").value = cfg.model || "";
+  renderRecents(cfg.recents || []);
+})();
+
+function renderRecents(list) {
+  $("recents").innerHTML = list.map(p => `<button class="chip" onclick="pickRecent(this)">${p}</button>`).join("");
+}
+function pickRecent(btn) {
+  $("projPath").value = btn.textContent;
+  inspect();
+}
+async function saveCfg() {
+  const r = await (await fetch("/api/config", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ apiKey: $("apiKey").value, baseUrl: $("baseUrl").value, model: $("model").value }) })).json();
+  $("cfgStatus").textContent = r.ok ? "✓ 已保存，下次直接用" : "保存失败";
+  $("cfgStatus").className = "status " + (r.ok ? "ok" : "err");
+  if (r.ok) $("cfgBox").open = false;
+}
+
+async function inspect() {
+  const p = $("projPath").value.trim();
+  if (!p) return;
+  state.path = p;
+  $("projStatus").textContent = "检测中...";
+  $("projStatus").className = "status";
+  const r = await (await fetch("/api/inspect", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path: p }) })).json();
+  if (!r.ok) {
+    $("projStatus").textContent = "✗ " + r.error;
+    $("projStatus").className = "status err";
+    $("addAllRow").style.display = "none";
+    return;
+  }
+  const n = r.staged + r.unstaged + r.untracked;
+  const needsAdd = r.staged === 0 && (r.unstaged > 0 || r.untracked > 0);
+  $("projStatus").innerHTML = `✓ 分支 <b>${r.branch}</b> ｜ 暂存 <b>${r.staged}</b> ｜ 未暂存 <b>${r.unstaged}</b> ｜ 新文件 <b>${r.untracked}</b>` +
+    (needsAdd ? "　← 建议勾选下方自动暂存" : "");
+  $("projStatus").className = "status ok";
+  $("addAllRow").style.display = "flex";
+  $("addAll").checked = needsAdd;
+  $("genBtn").disabled = n === 0;
+}
+
+async function generate() {
+  const p = $("projPath").value.trim();
+  if (!p) { $("projStatus").textContent = "✗ 请先填项目路径"; $("projStatus").className = "status err"; return; }
+  $("genBtn").disabled = true;
+  $("genBtn").innerHTML = '<span class="spinner"></span>AI 正在分析 diff...';
+  $("result").innerHTML = "";
+  try {
+    const r = await (await fetch("/api/generate", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ path: p, addAll: $("addAll").checked, lang: $("langEn").checked ? "en" : "zh" }) })).json();
+    if (!r.ok) throw new Error(r.error);
+    state.candidates = [r.recommended, ...(r.alternatives || [])];
+    state.source = r.source;
+    renderResults();
+  } catch (e) {
+    $("result").innerHTML = `<div class="card"><div class="status err">✗ ${e.message}</div></div>`;
+  } finally {
+    $("genBtn").disabled = false;
+    $("genBtn").innerHTML = "✨ 生成 Commit Message";
+    inspect();
+  }
+}
+
+function renderResults() {
+  const labels = ["⭐ 推荐", "备选 1", "备选 2"];
+  $("result").innerHTML = `
+    <div class="card">
+      <div class="status">变更来源：<b>${state.source}</b> ｜ 点卡片选择，再点下面的按钮</div>
+      ${state.candidates.map((c, i) => `
+        <div class="msg-card ${i === state.selected ? "selected" : ""}" onclick="pick(${i})">
+          <div class="msg-title">${labels[i] || "备选"}<span class="badge">${esc(c.title.split(":")[0])}</span></div>
+          <div class="msg-title">${esc(c.title)}</div>
+          ${c.body ? `<div class="msg-body">${esc(c.body)}</div>` : ""}
+        </div>`).join("")}
+      <div class="actions">
+        <button class="primary" onclick="doCommit()">✅ 用这条提交</button>
+        <button class="ghost" onclick="doCopy()">📋 复制</button>
+      </div>
+      <div class="status" id="commitStatus"></div>
+    </div>`;
+}
+function pick(i) { state.selected = i; renderResults(); }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function cur() { return state.candidates[state.selected] || {}; }
+
+async function doCopy() {
+  const c = cur();
+  await navigator.clipboard.writeText(c.body ? c.title + "\n\n" + c.body : c.title);
+  $("commitStatus").textContent = "✓ 已复制到剪贴板";
+  $("commitStatus").className = "status ok";
+}
+
+async function doCommit() {
+  const c = cur();
+  if (!c.title) return;
+  $("commitStatus").textContent = "提交中...";
+  $("commitStatus").className = "status";
+  const r = await (await fetch("/api/commit", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path: state.path, title: c.title, body: c.body || "" }) })).json();
+  $("commitStatus").textContent = r.ok ? `✅ 已提交 ${r.hash} — 完事！` : "✗ " + r.error;
+  $("commitStatus").className = "status " + (r.ok ? "ok" : "err");
+  if (r.ok) inspect();
+}
+</script>
+</body>
+</html>
