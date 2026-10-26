@@ -30,6 +30,7 @@
   .btn {
     border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 10px;
     padding: 11px 20px; font-size: 14px; cursor: pointer; font-weight: 500;
+    text-decoration: none; display: inline-block;
   }
   .btn:hover { border-color: var(--brand); color: var(--brand); }
   .btn.solid { background: var(--brand); border-color: var(--brand); color: #fff; }
@@ -129,6 +130,7 @@
     <div class="hero-actions">
       <button class="btn solid" data-jump="#checker">试试规范体检器</button>
       <button class="btn" data-jump="#modes">看三种用法</button>
+      <a class="btn" href="https://github.com/cifeng9528/gcm" target="_blank" rel="noopener">GitHub 源码 ↗</a>
     </div>
   </header>
 
@@ -253,7 +255,11 @@ feat(cart): 支持购物车商品批量删除"></textarea>
     </div>
   </section>
 
-  <footer>gcm · AI Commit 工坊 — 读取真实 diff，只写事实，不编造改动</footer>
+  <footer>
+    gcm · AI Commit 工坊 — 读取真实 diff，只写事实，不编造改动<br>
+    源码：<a href="https://github.com/cifeng9528/gcm" target="_blank" rel="noopener" style="color:var(--brand)">github.com/cifeng9528/gcm</a>
+    　·　开发记录：<span style="color:var(--ink)">workbuddy.md</span>
+  </footer>
 </div>
 
 <script>

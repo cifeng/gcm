@@ -3,8 +3,18 @@
 **读项目 git diff，AI 自动写出大厂标准 commit log。MCP 模式零 API Key、零成本。**
 
 - 🌐 **在线体验（不用安装）**：<https://workbuddy.link/p/qCYggAf2IbsZGZ8H6d3c11> — 内含可交互的 Commit 规范体检器
+- 📦 **源码仓库**：<https://github.com/cifeng9528/gcm>
 - 🧩 **形态**：MCP Server（零成本） / 本地网页版（点点点） / 命令行
 - 📄 **开发过程**：[workbuddy.md](./workbuddy.md)　🎬 **录屏脚本**：[contest/demo-script.md](./contest/demo-script.md)
+
+## 快速开始
+
+```bash
+git clone https://github.com/cifeng9528/gcm.git
+cd gcm
+```
+
+无需 `npm install`（零依赖，只需 Node.js ≥ 18）。然后选一种用法：MCP 模式（免费，见下）／双击 `start.bat` 开网页版／终端跑 `node gcm.js D:/code/your-project`。
 
 ## 解决什么问题
 
