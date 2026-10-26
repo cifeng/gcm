@@ -2,7 +2,7 @@
 
 **读项目 git diff，AI 自动写出大厂标准 commit log。MCP 模式零 API Key、零成本。**
 
-- 🌐 **在线体验（不用安装）**：<https://workbuddy.link/p/qCYggAf2IbsZGZ8H6d3c11> — 内含可交互的 Commit 规范体检器
+- 🌐 **在线体验（不用安装）**：<https://ai-commit-studio.app.workbuddy.host/?sharecode=NBGL3G4SYO> — 可粘贴 diff 在线出稿、给 commit message 打分（链接含分享码，请完整复制）
 - 📦 **源码仓库**：<https://github.com/cifeng/gcm>
 - 🧩 **形态**：MCP Server（零成本） / 本地网页版（点点点） / 命令行
 - 📄 **开发过程**：[workbuddy.md](./workbuddy.md)　🎬 **录屏脚本**：[contest/demo-script.md](./contest/demo-script.md)

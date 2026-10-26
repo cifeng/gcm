@@ -29,8 +29,11 @@
 
 ## 06 作品体验链接（必填）
 
-- 发布正式站点后回填（形如 `https://xxxx.app.workbuddy.link`）
-- 当前可用的资料库页面：https://workbuddy.link/p/qCYggAf2IbsZGZ8H6d3c11
+> https://ai-commit-studio.app.workbuddy.host/?sharecode=NBGL3G4SYO
+
+注意：链接含分享码，投稿时请**完整复制**（含 ?sharecode=...），否则打不开。
+打开后自动演示"在线出稿"效果；评委也可点示例按钮自己试。
+备用链接（资料库页面，内容相同）：https://workbuddy.link/p/qCYggAf2IbsZGZ8H6d3c11
 
 ## 07 WorkBuddy 创作对话记录
 
@@ -48,9 +51,13 @@
 
 ## 10 应用界面截图或展示视频（二选一）
 
-- 截图：最多 9 张 JPG/PNG，建议覆盖「在线出稿」「规范体检」「三种用法」三屏
-- 视频：MP4，按 `contest/demo-script.md` 的 3 分钟脚本录制
-- 建议至少提交 3 张截图 + 1 段录屏，完成度这一项占 40 分
+- ✅ 截图已备好（`contest/screenshots/`，5 张，按此顺序上传）：
+  1. `01-cover.png` 首屏 —— 痛点对比
+  2. `02-checker.png` 规范体检 92 分实时打分
+  3. `03-generate.png` 粘贴 diff 在线出稿
+  4. `05-modes.png` 三种用法（MCP 零成本）
+  5. `04-fullpage.png` 整页全景
+- 视频（可选加分）：MP4，按 `contest/demo-script.md` 的 3 分钟脚本录制
 
 ## 11 您的 UserID
 
