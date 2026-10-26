@@ -7,7 +7,7 @@
 - **作品名**：gcm · AI Commit 工坊
 - **一句话**：读项目 git diff，AI 自动写出大厂标准 commit log，零 API Key 也能用
 - **在线体验页**：https://workbuddy.link/p/qCYggAf2IbsZGZ8H6d3c11
-- **公开仓库**：https://github.com/cifeng9528/gcm （MIT）
+- **公开仓库**：https://github.com/cifeng/gcm （MIT）
 - **形态**：MCP Server（零成本模式）+ 本地网页版 + 命令行
 
 ## 二、开发对话时间线（真实交互，按轮次还原）
