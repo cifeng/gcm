@@ -53,7 +53,7 @@ WorkBuddy 的动作：
 > 用户：可以的 这个能上架 程序员节应用创作大赛吗
 
 WorkBuddy 的判断：题材契合、工程完整，但缺"评委能直接点开的作品"与"开发过程证明"。于是：
-1. 生成作品体验页 `contest/landing.html`（含真实可交互的 **Commit 规范体检器**）
+1. 生成作品体验页 `contest/site/index.html`（含真实可交互的 **Commit 规范体检器**）
 2. 过质量门禁 `lint_page_quality.py`（PASS，仅 1 条 ES6 兼容性 WARN）
 3. 导入资料库并发布 → 在线链接
 4. 补齐 `workbuddy.md`、`README`、`mcp-config.example.json`、演示脚本

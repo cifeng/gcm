@@ -103,7 +103,10 @@ node gcm.js . --lang en --no-body         # 英文 / 只要标题
 | `gcm.js` | 命令行版（单文件零依赖） |
 | `mcp-config.example.json` | MCP 配置示例（脱敏） |
 | `workbuddy.md` | 用 WorkBuddy 开发的完整过程记录 |
-| `contest/landing.html` | 作品体验页（已发布为在线链接） |
+| `contest/site/index.html` | 作品体验页（已发布为在线链接） |
+| `contest/submission.md` | 投稿表单逐栏填写内容 + 评分自查 |
 | `contest/demo-script.md` | 3 分钟录屏脚本 |
+| `contest/site/` | 可部署的站点目录（index.html + engine.js 规则引擎） |
+| `contest/landing.html` | 单文件版体验页（由 `node contest/build-landing.js` 生成） |
 | `test-mock-server.js` | 本地 mock LLM（联调用） |
 | `demo-repo/` | 测试示例仓库 |
